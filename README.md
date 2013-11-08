@@ -71,8 +71,38 @@ mCardView.refresh();
 
 ## Known issues
 
-.......
+* Sometimes when we touch on a card stack title, when it rearranges, the GridView cannot get the full height, and the inmediate bottom stack overlapes it.
+* ...
+
+## Responsive
+
+The view arranges the cards BY DEFAULT by this way:
+
+* When the device is a mobile (< LARGE) the view will have only a colum, in both landscape and portrait, and the column width will be 60% in landscape and 93% in portrait.
+* When the device is a small tablet (LARGE) the view will have one column in portrait and two in landscape, and the view width (all the columns) will be 76% in landscape and 92% in portrait.
+* When the device is a big tablet (> LARGE/XLARGE) the view will the same columns that the LARGE devices, but the view width will be 76% in both landscape and portrait.
+
+This behavior has been extracted from Google Now behavior in the same devices described.
 
 ## Splashes
 
-.....
+### Galaxy Nexus (< LARGE)
+
+#### Landscape
+![alt tag](https://raw.github.com/mowcixo/cardsui-for-android/master/snapshots/galaxy_nexus_land.png)
+#### Portrait
+![alt tag](https://raw.github.com/mowcixo/cardsui-for-android/master/snapshots/galaxy_nexus_port.png)
+
+### Nexus 7 (LARGE)
+
+#### Landscape
+![alt tag](https://raw.github.com/mowcixo/cardsui-for-android/master/snapshots/nexus_7_land.png)
+#### Portrait
+![alt tag](https://raw.github.com/mowcixo/cardsui-for-android/master/snapshots/nexus_7_port.png)
+
+### Galaxy Tab 10.1 (> LARGE/XLARGE)
+
+#### Landscape
+![alt tag](https://raw.github.com/mowcixo/cardsui-for-android/master/snapshots/galaxy_tab_10_land.png)
+#### Portrait
+![alt tag](https://raw.github.com/mowcixo/cardsui-for-android/master/snapshots/galaxy_tab_10_port.png)
