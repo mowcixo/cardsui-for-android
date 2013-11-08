@@ -78,15 +78,15 @@ mCardView.refresh();
 
 The view arranges the cards BY DEFAULT by this way:
 
-* When the device is a mobile (< LARGE) the view will have '''only a colum, in both landscape and portrait''', and the column width will be '''60% in landscape''' and '''93% in portrait'''.
-* When the device is a small tablet (LARGE) the view will have '''one column in portrait and two in landscape''', and the view width (all the columns) will be '''76% in landscape''' and '''92% in portrait'''.
-* When the device is a big tablet (> LARGE/XLARGE) the view will '''the same columns that the LARGE devices''', but the view width will be '''76% in both landscape and portrait'''.
+* When the device is a mobile (< LARGE) the view will have __only a colum, in both landscape and portrait__, and the column width will be __60% in landscape__ and __93% in portrait__.
+* When the device is a small tablet (LARGE) the view will have __one column in portrait and two in landscape__, and the view width (all the columns) will be __76% in landscape__ and __92% in portrait__.
+* When the device is a big tablet (> LARGE/XLARGE) the view will __the same columns that the LARGE devices__, but the view width will be __76% in both landscape and portrait__.
 
 This behavior has been extracted from Google Now behavior in the same devices described.
 
 ### Customization
 
-If you want to force the number of columns in landscape or portrait, the view have these two arguments: '''landscapeColumns''' and '''portraitColumns'''.
+If you want to force the number of columns in landscape or portrait, the view have these two arguments: __landscapeColumns__ and __portraitColumns__.
 
 ```xml
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
