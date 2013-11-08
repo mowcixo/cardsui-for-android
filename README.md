@@ -78,11 +78,34 @@ mCardView.refresh();
 
 The view arranges the cards BY DEFAULT by this way:
 
-* When the device is a mobile (< LARGE) the view will have only a colum, in both landscape and portrait, and the column width will be 60% in landscape and 93% in portrait.
-* When the device is a small tablet (LARGE) the view will have one column in portrait and two in landscape, and the view width (all the columns) will be 76% in landscape and 92% in portrait.
-* When the device is a big tablet (> LARGE/XLARGE) the view will the same columns that the LARGE devices, but the view width will be 76% in both landscape and portrait.
+* When the device is a mobile (< LARGE) the view will have '''only a colum, in both landscape and portrait''', and the column width will be '''60% in landscape''' and '''93% in portrait'''.
+* When the device is a small tablet (LARGE) the view will have '''one column in portrait and two in landscape''', and the view width (all the columns) will be '''76% in landscape''' and '''92% in portrait'''.
+* When the device is a big tablet (> LARGE/XLARGE) the view will '''the same columns that the LARGE devices''', but the view width will be '''76% in both landscape and portrait'''.
 
 This behavior has been extracted from Google Now behavior in the same devices described.
+
+### Customization
+
+If you want to force the number of columns in landscape or portrait, the view have these two arguments: '''landscapeColumns''' and '''portraitColumns'''.
+
+```xml
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+ 
+    <com.fima.cardsui.views.CardUI
+        android:id="@+id/cardsview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        
+        portraitColumns="2"
+        landscapeColumns="6"
+        
+        />
+ 
+</RelativeLayout>
+```
 
 ## Splashes
 
