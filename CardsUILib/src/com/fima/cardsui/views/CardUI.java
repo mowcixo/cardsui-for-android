@@ -3,24 +3,31 @@ package com.fima.cardsui.views;
 import java.util.ArrayList;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
+import android.content.res.Configuration;
+import android.graphics.Canvas;
 import android.os.Build;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.view.ViewTreeObserver.OnGlobalLayoutListener;
 import android.view.animation.TranslateAnimation;
 import android.widget.AbsListView;
 import android.widget.AbsListView.OnScrollListener;
 import android.widget.FrameLayout;
+import android.widget.GridView;
 import android.widget.Space;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 
 import com.fima.cardsui.R;
 import com.fima.cardsui.StackAdapter;
+import com.fima.cardsui.Utils;
 import com.fima.cardsui.objects.AbstractCard;
 import com.fima.cardsui.objects.Card;
 import com.fima.cardsui.objects.CardStack;
@@ -68,6 +75,8 @@ public class CardUI extends FrameLayout {
 	protected int mScrollY;
 	private StackAdapter mAdapter;
 	private View mHeader;
+	
+	private GridView mGridView;
 
 	/**
 	 * Constructor
@@ -97,26 +106,34 @@ public class CardUI extends FrameLayout {
 		initData(context);
 	}
 
+	@SuppressWarnings("deprecation")
+	@SuppressLint("NewApi")
 	private void initData(Context context) {
 		mContext = context;
 		LayoutInflater inflater = LayoutInflater.from(context);
 		mStacks = new ArrayList<AbstractCard>();
-		//inflate a different layout, depending on the number of columns
-		if (mColumnNumber == 1) {
-			inflater.inflate(R.layout.cards_view, this);
-			// init observable scrollview
-			mListView = (QuickReturnListView) findViewById(R.id.listView);
-		} else {
-			//initialize the mulitcolumn view
-			inflater.inflate(R.layout.cards_view_multicolumn, this);
-			mTableLayout = (TableLayout) findViewById(R.id.tableLayout);
-		}
-		// mListView.setCallbacks(this);
 
-		mHeader = inflater.inflate(R.layout.header, null);
-		mQuickReturnView = (ViewGroup) findViewById(R.id.sticky);
-		mPlaceholderView = mHeader.findViewById(R.id.placeholder);
+		inflater.inflate(R.layout.cards_view, this);
+		//mTableLayout = (TableLayout) findViewById(R.id.tableLayout);
+		mGridView = (GridView)findViewById(R.id.gridview);
 
+	    
+	    ViewTreeObserver observer = getViewTreeObserver();
+	    observer.addOnGlobalLayoutListener(new OnGlobalLayoutListener() {
+
+			@Override
+	        public void onGlobalLayout() {
+
+				setResponsiveLayoutParams();
+		
+				if(Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
+					getViewTreeObserver().removeGlobalOnLayoutListener(this);
+				} else {
+					getViewTreeObserver().removeOnGlobalLayoutListener(this);
+				}
+	        }
+	    });
+	    
 	}
 
 	public void setSwipeable(boolean b) {
@@ -124,105 +141,88 @@ public class CardUI extends FrameLayout {
 	}
 
 	public void setHeader(View header) {
-
 		mPlaceholderView.setVisibility(View.VISIBLE);
-
-		mListView.getViewTreeObserver().addOnGlobalLayoutListener(
-				new ViewTreeObserver.OnGlobalLayoutListener() {
-					@Override
-					public void onGlobalLayout() {
-
-						mQuickReturnHeight = mQuickReturnView.getHeight();
-						mListView.computeScrollY();
-						mCachedVerticalScrollRange = mListView.getListHeight();
-
-					}
-				});
-
-		mListView.setOnScrollListener(new OnScrollListener() {
-			@SuppressLint("NewApi")
-			@Override
-			public void onScroll(AbsListView view, int firstVisibleItem,
-					int visibleItemCount, int totalItemCount) {
-
-				mScrollY = 0;
-				int translationY = 0;
-
-				if (mListView.scrollYIsComputed()) {
-					mScrollY = mListView.getComputedScrollY();
-				}
-
-				int rawY = mPlaceholderView.getTop()
-						- Math.min(
-								mCachedVerticalScrollRange
-										- mListView.getHeight(), mScrollY);
-
-				switch (mState) {
-				case STATE_OFFSCREEN:
-					if (rawY <= mMinRawY) {
-						mMinRawY = rawY;
-					} else {
-						mState = STATE_RETURNING;
-					}
-					translationY = rawY;
-					break;
-
-				case STATE_ONSCREEN:
-					if (rawY < -mQuickReturnHeight) {
-						mState = STATE_OFFSCREEN;
-						mMinRawY = rawY;
-					}
-					translationY = rawY;
-					break;
-
-				case STATE_RETURNING:
-					translationY = (rawY - mMinRawY) - mQuickReturnHeight;
-					if (translationY > 0) {
-						translationY = 0;
-						mMinRawY = rawY - mQuickReturnHeight;
-					}
-
-					if (rawY > 0) {
-						mState = STATE_ONSCREEN;
-						translationY = rawY;
-					}
-
-					if (translationY < -mQuickReturnHeight) {
-						mState = STATE_OFFSCREEN;
-						mMinRawY = rawY;
-					}
-					break;
-				}
-
-				/** this can be used if the build is below honeycomb **/
-				if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.HONEYCOMB) {
-					TranslateAnimation anim = new TranslateAnimation(0, 0,
-							translationY, translationY);
-					anim.setFillAfter(true);
-					anim.setDuration(0);
-					mQuickReturnView.startAnimation(anim);
-				} else {
-					mQuickReturnView.setTranslationY(translationY);
-				}
-
-			}
-
-			@Override
-			public void onScrollStateChanged(AbsListView view, int scrollState) {
-			}
-		});
-
-		if (header != null) {
-			try {
-				mQuickReturnView.removeAllViews();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			mQuickReturnView.addView(header);
-		}
-
+	}
+	
+	public void changeColumns(int cols) {
+		mColumnNumber = cols;
+		if( mTableLayout != null )
+			mTableLayout.removeAllViews();
+		//mTableLayout = null;
+		//initData(mContext);
 	}
 
+    @SuppressLint("NewApi")
+	@SuppressWarnings("deprecation")
+	@Override
+	protected void onConfigurationChanged(Configuration newConfig) {	    
+	    ViewTreeObserver observer = getViewTreeObserver();
+	    observer.addOnGlobalLayoutListener(new OnGlobalLayoutListener() {
+
+			@Override
+	        public void onGlobalLayout() {
+
+				setResponsiveLayoutParams();
+				
+		
+				if(Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
+					getViewTreeObserver().removeGlobalOnLayoutListener(this);
+				} else {
+					getViewTreeObserver().removeOnGlobalLayoutListener(this);
+				}
+	        }
+	    });
+	    
+		super.onConfigurationChanged(newConfig);
+	}
+
+    private void setResponsiveLayoutParams() {
+    	int currentOrientation = Utils.getScreenOrientation((Activity)mContext);
+    	
+    	FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT);
+		
+    	int percent = 90;
+    	int portraitColumns = 1;
+    	int landscapeColumns = 2;
+    	if( Utils.isXLarge(mContext) ) {
+    		percent = 76;
+    	}else if( Utils.isLarge(mContext) ) {
+    		if (currentOrientation == Configuration.ORIENTATION_LANDSCAPE) {
+    			percent = 76;
+	        }else if (currentOrientation == Configuration.ORIENTATION_PORTRAIT) {
+	        	percent = 92;
+	        }
+    	}else {
+    		if (currentOrientation == Configuration.ORIENTATION_LANDSCAPE) {
+    			percent = 60;
+	        }else if (currentOrientation == Configuration.ORIENTATION_PORTRAIT) {
+	        	percent = 93;
+	        }
+    		portraitColumns = 1;
+    		landscapeColumns = 1;
+    	}
+
+	    if (currentOrientation == Configuration.ORIENTATION_LANDSCAPE) {
+            mGridView.setNumColumns(landscapeColumns);
+        }else if (currentOrientation == Configuration.ORIENTATION_PORTRAIT) {
+            mGridView.setNumColumns(portraitColumns);
+        }
+    	
+    	int width = (getWidth() * percent) / 100;
+		int padding = ( getWidth() - width ) / 2;
+    	
+		lp.gravity = Gravity.CENTER_HORIZONTAL;
+
+		mGridView.setLayoutParams(lp);
+
+		int topAndBottom = Utils.convertDpToPixelInt(mContext, 6);
+		
+		mGridView.setPadding(padding, topAndBottom, padding, topAndBottom);
+		
+		mGridView.invalidate();
+		mGridView.invalidateViews();
+    }
+    
 	public void scrollToCard(int pos) {
 		// int y = 0;
 		try {
@@ -305,49 +305,10 @@ public class CardUI extends FrameLayout {
 
 		if (mAdapter == null) {
 			mAdapter = new StackAdapter(mContext, mStacks, mSwipeable);
-			if (mListView != null) {
-				mListView.setAdapter(mAdapter);
-			} else if (mTableLayout != null) {
-				TableRow tr = null;
-				for (int i = 0; i < mAdapter.getCount(); i += mColumnNumber) {
-					//add a new table row with the current context
-					tr = (TableRow) new TableRow(mTableLayout.getContext());
-					tr.setOrientation(TableRow.HORIZONTAL);
-					tr.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT,
-							TableRow.LayoutParams.WRAP_CONTENT));
-					//add as many cards as the number of columns indicates per row
-					for (int j = 0; j < mColumnNumber; j++) {
-						if (i + j < mAdapter.getCount()) {
-							View card = mAdapter.getView(i + j, null, tr);
-							if(card.getLayoutParams() != null) {
-								card.setLayoutParams(new TableRow.LayoutParams(card.getLayoutParams().width, card.getLayoutParams().height, 1f));
-							} else {
-								card.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 1f));
-							}
-							tr.addView(card);
-						}
-					}
-					mTableLayout.addView(tr);
-				}
-				if(tr != null) {
-					//fill the empty space with spacers
-					for (int j = mAdapter.getCount() % mColumnNumber; j > 0; j--) {
-						View space = null;
-						if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-							space = new Space(tr.getContext()) ;
-						} else {
-							space = new View(tr.getContext()) ;
-						}
-						space.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT, 1f));
-						tr.addView(space);
-					}
-				}
-				
-			}
+			mGridView.setAdapter(mAdapter);
 		} else {
 			mAdapter.setSwipeable(mSwipeable); // in case swipeable changed;
 			mAdapter.setItems(mStacks);
-
 		}
 
 	}

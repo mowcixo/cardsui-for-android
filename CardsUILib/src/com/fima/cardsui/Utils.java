@@ -1,7 +1,13 @@
 package com.fima.cardsui;
 
+import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
+import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
+import android.os.Build;
 import android.util.DisplayMetrics;
+import android.view.Surface;
 
 public class Utils {
 	
@@ -36,5 +42,20 @@ public class Utils {
 		float px = (float) (dp * (metrics.densityDpi / 160f));
 		return px;
 	}
+	
+	public static boolean isLarge(Context context) {
+	    boolean large = ((context.getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) == Configuration.SCREENLAYOUT_SIZE_LARGE);
+	    return large;
+	}
+	
+	public static boolean isXLarge(Context context) {
+	    boolean large = ((context.getResources().getConfiguration().screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) > Configuration.SCREENLAYOUT_SIZE_LARGE);
+	    return large;
+	}
 
+	public static int getScreenOrientation(Context context) {
+		Configuration config = context.getResources().getConfiguration();
+	    return config.orientation;
+	}
+	
 }

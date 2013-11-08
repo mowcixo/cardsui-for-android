@@ -20,7 +20,7 @@ import com.nineoldandroids.animation.Animator;
 import com.nineoldandroids.animation.Animator.AnimatorListener;
 import com.nineoldandroids.animation.ObjectAnimator;
 
-public class CardStack extends AbstractCard {
+public class CardStack extends AbstractCard {	
 	private static final float _12F = 12f;
 	private static final float _45F = 45f;
 	private static final String NINE_OLD_TRANSLATION_Y = "translationY";
@@ -82,23 +82,30 @@ public class CardStack extends AbstractCard {
 
 			int topPx = 0;
 
-			if (lastCardPosition == i) {
-				// last card
-				cardView = card.getViewLast(context);
+			if( cardsArraySize == 1 && i == 0 ) {
+				// If only has one card, get the first
+				cardView = card.getViewFirst(context);
 				cardView.setOnClickListener(card.getClickListener());
-			} else {
-				if (0 == i) {
-					// first card
-					cardView = card.getViewFirst(context);
-
+			}else {
+				if (lastCardPosition == i) {
+					// last card
+					cardView = card.getViewLast(context);
+					cardView.setOnClickListener(card.getClickListener());
 				} else {
-					// any other card
-					cardView = card.getView(context);
+					if (0 == i) {
+						// first card
+						cardView = card.getViewFirst(context);
+
+					} else {
+						// any other card
+						cardView = card.getView(context);
+
+					}
+
+					cardView.setOnClickListener(getClickListener(this, container, i));
 
 				}
-
-				cardView.setOnClickListener(getClickListener(this, container, i));
-
+				
 			}
 
 			if (i > 0) {
@@ -344,7 +351,6 @@ public class CardStack extends AbstractCard {
 				// refresh();
 				mAdapter.notifyDataSetChanged();
 				Log.v("CardsUI", "Notify Adapter");
-
 			}
 
 			@Override
@@ -367,5 +373,6 @@ public class CardStack extends AbstractCard {
 	public int getPosition() {
 		return mPosition;
 	}
-
+	
+	
 }
