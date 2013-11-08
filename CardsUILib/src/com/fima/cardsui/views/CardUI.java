@@ -6,25 +6,14 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.Configuration;
-import android.graphics.Canvas;
 import android.os.Build;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.ViewTreeObserver.OnGlobalLayoutListener;
-import android.view.animation.TranslateAnimation;
-import android.widget.AbsListView;
-import android.widget.AbsListView.OnScrollListener;
 import android.widget.FrameLayout;
 import android.widget.GridView;
-import android.widget.Space;
-import android.widget.TableLayout;
-import android.widget.TableRow;
-
 import com.fima.cardsui.R;
 import com.fima.cardsui.StackAdapter;
 import com.fima.cardsui.Utils;
@@ -33,14 +22,6 @@ import com.fima.cardsui.objects.Card;
 import com.fima.cardsui.objects.CardStack;
 
 public class CardUI extends FrameLayout {
-
-	/**
-	 * Constants
-	 */
-
-	private static final int STATE_ONSCREEN = 0;
-	private static final int STATE_OFFSCREEN = 1;
-	private static final int STATE_RETURNING = 2;
 
 	public interface OnRenderedListener {
 		public void onRendered();
@@ -53,30 +34,16 @@ public class CardUI extends FrameLayout {
 
 	private ArrayList<AbstractCard> mStacks;
 	private Context mContext;
-	private ViewGroup mQuickReturnView;
-	/**
-	 * The table layout to be used for multiple columns
-	 */
-	private TableLayout mTableLayout;
-	/**
-	 * The number of columns, 1 by default
-	 */
-	private int mColumnNumber = 1;
-	private View mPlaceholderView;
-	private QuickReturnListView mListView;
-	private int mMinRawY = 0;
-	private int mState = STATE_ONSCREEN;
-	private int mQuickReturnHeight;
-	private int mCachedVerticalScrollRange;
+	
 	private boolean mSwipeable = false;
 	private OnRenderedListener onRenderedListener;
 	protected int renderedCardsStacks = 0;
 
-	protected int mScrollY;
 	private StackAdapter mAdapter;
-	private View mHeader;
-	
 	private GridView mGridView;
+	
+	private int mPortraitColumns;
+	private int mLandscapeColumns;
 
 	/**
 	 * Constructor
@@ -84,7 +51,8 @@ public class CardUI extends FrameLayout {
 	public CardUI(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
 		//read the number of columns from the attributes
-		mColumnNumber = attrs.getAttributeIntValue(null, "columnCount", 1);
+		mPortraitColumns = attrs.getAttributeIntValue(null, "portraitColumns", -1);
+		mLandscapeColumns = attrs.getAttributeIntValue(null, "landscapeColumns", -1);
 		initData(context);
 	}
 
@@ -94,7 +62,8 @@ public class CardUI extends FrameLayout {
 	public CardUI(Context context, AttributeSet attrs) {
 		super(context, attrs);
 		//read the number of columns from the attributes
-		mColumnNumber = attrs.getAttributeIntValue(null, "columnCount", 1);
+		mPortraitColumns = attrs.getAttributeIntValue(null, "portraitColumns", -1);
+		mLandscapeColumns = attrs.getAttributeIntValue(null, "landscapeColumns", -1);
 		initData(context);
 	}
 
@@ -138,18 +107,6 @@ public class CardUI extends FrameLayout {
 
 	public void setSwipeable(boolean b) {
 		mSwipeable = b;
-	}
-
-	public void setHeader(View header) {
-		mPlaceholderView.setVisibility(View.VISIBLE);
-	}
-	
-	public void changeColumns(int cols) {
-		mColumnNumber = cols;
-		if( mTableLayout != null )
-			mTableLayout.removeAllViews();
-		//mTableLayout = null;
-		//initData(mContext);
 	}
 
     @SuppressLint("NewApi")
@@ -201,6 +158,11 @@ public class CardUI extends FrameLayout {
     		portraitColumns = 1;
     		landscapeColumns = 1;
     	}
+    	
+    	if( mPortraitColumns != -1 )
+    		portraitColumns =  mPortraitColumns;
+    	if( mLandscapeColumns != -1 )
+    		landscapeColumns = mLandscapeColumns;
 
 	    if (currentOrientation == Configuration.ORIENTATION_LANDSCAPE) {
             mGridView.setNumColumns(landscapeColumns);
@@ -228,7 +190,7 @@ public class CardUI extends FrameLayout {
 		try {
 			// y = getY(pos);
 
-			mListView.smoothScrollToPosition(pos);
+			mGridView.smoothScrollToPosition(pos);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -238,14 +200,10 @@ public class CardUI extends FrameLayout {
 
 		try {
 
-			mListView.scrollTo(0, y);
+			mGridView.scrollTo(0, y);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-	}
-
-	public QuickReturnListView getScrollView() {
-		return mListView;
 	}
 
 	public int getLastCardStackPosition() {
